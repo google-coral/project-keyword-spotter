@@ -15,7 +15,7 @@ are used by digital assistants to tell them when to start listening.
 The repo contains a keyphrase detection model that can detect about 140 short keyphrases such as
 *"move left"*, *"position four"* in a two second window of audio. Each output neuron of the neural network
 corresponds to a keyphrase, the full list can be found
- [here](https://aiyprojects.googlesource.com/project-keyword-spotter/+/refs/heads/master/config/labels_gc2.raw.txt).
+ [here](config/labels_gc2.raw.txt).
 
 The repo also contains all the necessary wrapper code and three example programs:
   * run_model.py: Prints out the top couple of detections each time inference is performed,
@@ -196,4 +196,4 @@ go_right,right,0.7
 would set the keyphrase specific threshold of *go_left* to *0.9* and of *go_right* to *0.7*.
 
 ### Problem 5: I need a keyphrase that is not provided by the model.
-For now we only have [these ca 140 words](https://aiyprojects.googlesource.com/project-keyword-spotter/+/refs/heads/master/conifg/labels_gc2.raw.txt), however in future version we wish to supply many different possible combinations of keyphrases. Please send feedback on what would be useful.
+For now we only have [these ca 140 words](config/labels_gc2.raw.txt), however in future version we wish to supply many different possible combinations of keyphrases. Please send feedback on what would be useful.
