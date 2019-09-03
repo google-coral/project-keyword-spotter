@@ -12,5 +12,5 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-export DISPLAY=":0"
+export DISPLAY="${DISPLAY:-:0}"
 python3 run_yt_voice_control.py
