@@ -200,15 +200,5 @@ would set the keyphrase specific threshold of *go_left* to *0.9* and of *go_righ
 ### Problem 5: I need a keyphrase that is not provided by the model.
 For now we only have [these ca 140 words](config/labels_gc2.raw.txt), however in future version we wish to supply many different possible combinations of keyphrases. Please send feedback on what would be useful.
 
-### Problem 6:
-I get an error:
-
-```
-OSError: [Errno -9997] Invalid sample rate
-```
-
-Some microphones don't support the default sample rate of 16kHz. Try adding a
-flag: ```--sample_rate_hz 48000```  
-
 
 
