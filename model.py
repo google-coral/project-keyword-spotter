@@ -185,7 +185,7 @@ def add_model_flags(parser):
       default=16000,
       help="Optional: Sample Rate. The model expects 16000. "
       "However you may alternative sampling rate that may or may not work."
-      "If you speicify 48000 it will be downsampled to 16000.")
+      "If you specify 48000 it will be downsampled to 16000.")
 
 def classify_audio(audio_device_index, engine, labels_file,
                    commands_file=None,

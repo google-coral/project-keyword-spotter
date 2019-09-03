@@ -265,10 +265,11 @@ class Game:
     self.apple = Apple(display_width, display_height)
     self._update_player_to_apple_dist()
     self._gameover_text = 'Say \'launch game\' to start the game!\n'
-    self._gameover_text += '\nConrols:\n'
+    self._gameover_text += '\nControls: You can say any of\n\n'
     for d in ["up", "down", "left", "right"]:
-      self._gameover_text += 'Say \'move %s\', \'go %s\' ' % (d, d)
-      self._gameover_text +=  'or \'turn %s\' to make the snake go %s.\n' % (d, d)
+      self._gameover_text += '\'move %s\', \'go %s\' ' % (d, d)
+      self._gameover_text +=  'or \'turn %s\'\n' % (d)
+    self._gameover_text += '\n\n to control your snake.'
 
   def _update_gameover_text(self):
     self._gameover_text = ''
