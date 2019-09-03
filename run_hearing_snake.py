@@ -359,8 +359,8 @@ class Game:
 
   def eat_apple(self):
     # play sound
-    pygame.mixer.music.load('audio/eat.mp3')
-    pygame.mixer.music.play(0)
+    # pygame.mixer.music.load('audio/eat.mp3')
+    # pygame.mixer.music.play(0)
 
     # snake ate apple, update the score
     self._update_score()
