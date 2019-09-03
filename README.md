@@ -92,6 +92,8 @@ Hearing snake is a version of the classic snake game that can be controlled
 using voice commands. It requires a display, so if you're using the Coral DevBoard
 attach a monitor first.
 
+![screenshot of the starting screen](media/startscreen.png)
+
 If you have the **USB Accelerator** plugged into a Linux system with an X windows system with simply run:
 ```
 python3 run_hearing_snake.py
