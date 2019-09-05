@@ -179,7 +179,7 @@ Possible Causes:
   *   Wrong microphone selected, see Problem 1.
   *  System microphone gain set too high, or to low. Have a look a your system's sound setting for input devices and check that its gain is high enough for normal speech to reach a reasonable level but not to high that often *peaks* (reaches the maximum).
   * Poor or broken microphone, try another microphone.
-  * Too much background noisy, use a close speaking microphone.
+  * Too much background noise, use a close speaking microphone.
 
 ###  Problem 3:  The model works well on some keyphrases but not on others.
 This is a known problem and future versions will try and remedy this.
