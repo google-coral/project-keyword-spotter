@@ -23,8 +23,9 @@ import audio_recorder
 import mel_features
 import numpy as np
 import queue
+import tflite_runtime.interpreter as tflite
 
-
+EDGETPU_SHARED_LIB = 'libedgetpu.so.1'
 q = queue.Queue()
 
 logging.basicConfig(
@@ -167,6 +168,16 @@ def read_commands(filename):
   return commands
 
 
+def make_interpreter(model_file):
+    model_file, *device = model_file.split('@')
+    return tflite.Interpreter(
+      model_path=model_file,
+      experimental_delegates=[
+          tflite.load_delegate(EDGETPU_SHARED_LIB,
+                               {'device': device[0]} if device else {})
+      ])
+
+
 def add_model_flags(parser):
   parser.add_argument(
       "--model_file",
@@ -187,7 +198,7 @@ def add_model_flags(parser):
       "However you may alternative sampling rate that may or may not work."
       "If you specify 48000 it will be downsampled to 16000.")
 
-def classify_audio(audio_device_index, engine, labels_file,
+def classify_audio(audio_device_index, engine, interpreter, labels_file,
                    commands_file=None,
                    result_callback=None, dectection_callback=None,
                    sample_rate_hz=16000,
@@ -217,6 +228,7 @@ def classify_audio(audio_device_index, engine, labels_file,
     last_detection = -1
     while not timed_out:
       spectrogram = feature_extractor.get_next_spectrogram(recorder)
+      print(spectrogram.flatten())
       _, result = engine.RunInference(spectrogram.flatten())
       if result_callback:
         result_callback(result, commands, labels)
