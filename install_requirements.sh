@@ -16,7 +16,7 @@ sudo apt-get install -y python3 python3-pyaudio python3-numpy python3-scipy
 
 sudo apt-get install -y python3-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev   libsdl1.2-dev libsmpeg-dev python-numpy subversion libportmidi-dev ffmpeg libswscale-dev libavformat-dev libavcodec-dev  libfreetype6-dev
 
-sudo apt.get install -y python3-pyaudio
+sudo apt-get install -y python3-pyaudio
 
 pip3 install pygame
 
