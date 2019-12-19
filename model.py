@@ -168,6 +168,41 @@ def read_commands(filename):
   return commands
 
 
+def get_output(interpreter):
+    """Returns no more than top_k categories with score >= score_threshold."""
+    scores = common.output_tensor(interpreter, 0)
+    print(scores)
+#    categories = [
+#        Category(i, scores[i])
+#        for i in np.argpartition(scores, -top_k)[-top_k:]
+#        if scores[i] >= score_threshold
+#    ]
+#    return sorted(categories, key=operator.itemgetter(1), reverse=True)
+
+def output_tensor(interpreter, i):
+    """Returns dequantized output tensor if quantized before."""
+    output_details = interpreter.get_output_details()[i]
+    output_data = np.squeeze(interpreter.tensor(output_details['index'])())
+    if 'quantization' not in output_details:
+        return output_data
+    scale, zero_point = output_details['quantization']
+    if scale == 0:
+        return output_data - zero_point
+    return scale * (output_data - zero_point)
+
+
+def input_tensor(interpreter):
+    """Returns the input tensor view as numpy array."""
+    tensor_index = interpreter.get_input_details()[0]['index']
+    return interpreter.tensor(tensor_index)()[0]
+
+
+def set_input(interpreter, data):
+    """Copies data to input tensor."""
+    interpreter_shape = interpreter.get_input_details()[0]['shape']
+    input_tensor(interpreter)[:,:] = np.reshape(data, interpreter_shape[1:3])
+
+
 def make_interpreter(model_file):
     model_file, *device = model_file.split('@')
     return tflite.Interpreter(
@@ -229,6 +264,9 @@ def classify_audio(audio_device_index, engine, interpreter, labels_file,
     while not timed_out:
       spectrogram = feature_extractor.get_next_spectrogram(recorder)
       print(spectrogram.flatten())
+      set_input(interpreter, spectrogram.flatten())
+      interpreter.invoke()
+      result = get_output(interpreter)
       _, result = engine.RunInference(spectrogram.flatten())
       if result_callback:
         result_callback(result, commands, labels)
