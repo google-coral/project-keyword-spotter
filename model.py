@@ -169,15 +169,8 @@ def read_commands(filename):
 
 
 def get_output(interpreter):
-    """Returns no more than top_k categories with score >= score_threshold."""
-    scores = common.output_tensor(interpreter, 0)
-    print(scores)
-#    categories = [
-#        Category(i, scores[i])
-#        for i in np.argpartition(scores, -top_k)[-top_k:]
-#        if scores[i] >= score_threshold
-#    ]
-#    return sorted(categories, key=operator.itemgetter(1), reverse=True)
+    """Returns entire output, threshold is applied later."""
+    return output_tensor(interpreter, 0)
 
 def output_tensor(interpreter, i):
     """Returns dequantized output tensor if quantized before."""
@@ -233,7 +226,7 @@ def add_model_flags(parser):
       "However you may alternative sampling rate that may or may not work."
       "If you specify 48000 it will be downsampled to 16000.")
 
-def classify_audio(audio_device_index, engine, interpreter, labels_file,
+def classify_audio(audio_device_index, interpreter, labels_file,
                    commands_file=None,
                    result_callback=None, dectection_callback=None,
                    sample_rate_hz=16000,
@@ -263,11 +256,9 @@ def classify_audio(audio_device_index, engine, interpreter, labels_file,
     last_detection = -1
     while not timed_out:
       spectrogram = feature_extractor.get_next_spectrogram(recorder)
-      print(spectrogram.flatten())
       set_input(interpreter, spectrogram.flatten())
       interpreter.invoke()
       result = get_output(interpreter)
-      _, result = engine.RunInference(spectrogram.flatten())
       if result_callback:
         result_callback(result, commands, labels)
       if dectection_callback:
