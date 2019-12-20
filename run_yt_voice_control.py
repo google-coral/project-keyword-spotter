@@ -27,7 +27,6 @@ from __future__ import print_function
 
 import argparse
 import sys
-from edgetpu.basic.basic_engine import BasicEngine
 import model
 from pykeyboard import PyKeyboard
 
@@ -70,7 +69,8 @@ def main():
   parser = argparse.ArgumentParser()
   model.add_model_flags(parser)
   args = parser.parse_args()
-  engine = BasicEngine(args.model_file)
+  interpreter = model.make_interpreter(args.model_file)
+  interpreter.allocate_tensors()
   mic = args.mic if args.mic is None else int(args.mic)
   yt_control = YoutubeControl()
   sys.stdout.write("--------------------\n")
@@ -78,7 +78,7 @@ def main():
   sys.stdout.write("Just ensure that focus is on the YouTube player.\n")
   sys.stdout.write("--------------------\n")
 
-  model.classify_audio(mic, engine,
+  model.classify_audio(mic, interpreter,
                        labels_file="config/labels_gc2.raw.txt",
                        commands_file="config/commands_v2.txt",
                        dectection_callback=yt_control.run_command,
