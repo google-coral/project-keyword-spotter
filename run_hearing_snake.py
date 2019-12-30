@@ -22,7 +22,6 @@ import os
 from random import randint
 from threading import Thread
 import time
-from edgetpu.basic.basic_engine import BasicEngine
 import model
 import pygame
 from pygame.locals import *
@@ -487,10 +486,11 @@ class App:
     pygame.quit()
 
   def spotter(self, args):
-    engine = BasicEngine(args.model_file)
+    interpreter = model.make_interpreter(args.model_file)
+    interpreter.allocate_tensors()
 
     mic = args.mic if args.mic is None else int(args.mic)
-    model.classify_audio(mic, engine,
+    model.classify_audio(mic, interpreter,
                          labels_file="config/labels_gc2.raw.txt",
                          commands_file="config/commands_v2_snake.txt",
                          dectection_callback=self._controler.callback,

@@ -23,7 +23,6 @@ from __future__ import print_function
 
 import argparse
 import sys
-from edgetpu.basic.basic_engine import BasicEngine
 import model
 import numpy as np
 
@@ -49,9 +48,10 @@ def main():
   parser = argparse.ArgumentParser()
   model.add_model_flags(parser)
   args = parser.parse_args()
-  engine = BasicEngine(args.model_file)
+  interpreter = model.make_interpreter(args.model_file)
+  interpreter.allocate_tensors()
   mic = args.mic if args.mic is None else int(args.mic)
-  model.classify_audio(mic, engine,
+  model.classify_audio(mic, interpreter,
                        labels_file="config/labels_gc2.raw.txt",
                        result_callback=print_results,
                        sample_rate_hz=int(args.sample_rate_hz),
