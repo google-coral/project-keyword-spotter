@@ -23,8 +23,9 @@ import audio_recorder
 import mel_features
 import numpy as np
 import queue
+import tflite_runtime.interpreter as tflite
 
-
+EDGETPU_SHARED_LIB = 'libedgetpu.so.1'
 q = queue.Queue()
 
 logging.basicConfig(
@@ -167,6 +168,44 @@ def read_commands(filename):
   return commands
 
 
+def get_output(interpreter):
+    """Returns entire output, threshold is applied later."""
+    return output_tensor(interpreter, 0)
+
+def output_tensor(interpreter, i):
+    """Returns dequantized output tensor if quantized before."""
+    output_details = interpreter.get_output_details()[i]
+    output_data = np.squeeze(interpreter.tensor(output_details['index'])())
+    if 'quantization' not in output_details:
+        return output_data
+    scale, zero_point = output_details['quantization']
+    if scale == 0:
+        return output_data - zero_point
+    return scale * (output_data - zero_point)
+
+
+def input_tensor(interpreter):
+    """Returns the input tensor view as numpy array."""
+    tensor_index = interpreter.get_input_details()[0]['index']
+    return interpreter.tensor(tensor_index)()[0]
+
+
+def set_input(interpreter, data):
+    """Copies data to input tensor."""
+    interpreter_shape = interpreter.get_input_details()[0]['shape']
+    input_tensor(interpreter)[:,:] = np.reshape(data, interpreter_shape[1:3])
+
+
+def make_interpreter(model_file):
+    model_file, *device = model_file.split('@')
+    return tflite.Interpreter(
+      model_path=model_file,
+      experimental_delegates=[
+          tflite.load_delegate(EDGETPU_SHARED_LIB,
+                               {'device': device[0]} if device else {})
+      ])
+
+
 def add_model_flags(parser):
   parser.add_argument(
       "--model_file",
@@ -187,7 +226,7 @@ def add_model_flags(parser):
       "However you may alternative sampling rate that may or may not work."
       "If you specify 48000 it will be downsampled to 16000.")
 
-def classify_audio(audio_device_index, engine, labels_file,
+def classify_audio(audio_device_index, interpreter, labels_file,
                    commands_file=None,
                    result_callback=None, dectection_callback=None,
                    sample_rate_hz=16000,
@@ -217,7 +256,9 @@ def classify_audio(audio_device_index, engine, labels_file,
     last_detection = -1
     while not timed_out:
       spectrogram = feature_extractor.get_next_spectrogram(recorder)
-      _, result = engine.RunInference(spectrogram.flatten())
+      set_input(interpreter, spectrogram.flatten())
+      interpreter.invoke()
+      result = get_output(interpreter)
       if result_callback:
         result_callback(result, commands, labels)
       if dectection_callback:
