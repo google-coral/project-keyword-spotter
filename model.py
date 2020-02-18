@@ -89,7 +89,7 @@ class Uint8LogMelFeatureExtractor(object):
             log_offset=0.001,
             window_length_secs=self.spectrogram_window_length_seconds,
             hop_length_secs=self.spectrogram_hop_length_seconds,
-            num_mel_bins=32,
+            num_mel_bins=self.num_mel_bins,
             lower_edge_hertz=60,
             upper_edge_hertz=3800) - np.log(1e-3))
     return spectrogram
