@@ -14,7 +14,6 @@
 
 """Interface to asynchronously capture continuous audio from PyAudio.
 
-
 This module requires pyaudio. See here for installation instructions:
 http://people.csail.mit.edu/hubert/pyaudio/
 
@@ -34,6 +33,7 @@ import time
 import numpy as np
 import pyaudio
 import queue
+import wave
 
 logger = logging.getLogger(__name__)
 
@@ -64,19 +64,23 @@ class AudioRecorder(object):
   """
   pyaudio_format = pyaudio.paInt16
   numpy_format = np.int16
-  num_channels = 1
+  num_channels = 1 #1 for mono, 2 for stereo
 
   # How many frames of audio PyAudio will fetch at once.
   # Higher numbers will increase the latancy.
-  frames_per_chunk = 2**9
+  frames_per_chunk = 1024
 
   # Limit queue to this number of audio chunks.
   max_queue_chunks = 1200
+
+  chunk_size_sample = 1024
+  sample_for_sec = 10
 
   # Timeout if we can't get a chunk from the queue for timeout_factor times the
   # chunk duration.
   timeout_factor = 4
 
+  frames_per_chunk = 1024
   def __init__(self, raw_audio_sample_rate_hz=48000,
                      downsample_factor=3,
                      device_index=None):
@@ -87,6 +91,7 @@ class AudioRecorder(object):
     self._audio = pyaudio.PyAudio()
     self._print_input_devices()
     self._device_index = device_index
+    self._frames = []
 
   def __enter__(self):
     if self._device_index is None:
@@ -110,9 +115,17 @@ class AudioRecorder(object):
         start=True,
         stream_callback=self._enqueue_raw_audio,
         **kwargs)
+    print("getting started ")
     logger.info("Started audio stream.")
     return self
-
+  def __capture_audio(self):
+    frames = []
+    print("Recording...")
+    for i in range(int(self._raw_audio_sample_rate_hz / 1024 * 10)):
+        data = self._stream.read(1024)
+        # if you want to hear your voice while recording
+        # stream.write(data)
+       self.frames.append(data)
   def __exit__(self, exception_type, exception_value, traceback):
     self._stream.stop_stream()
     self._stream.close()
@@ -141,7 +154,7 @@ class AudioRecorder(object):
       device_info = self._audio.get_device_info_by_host_api_device_index(0, i)
       if device_info.get("maxInputChannels") <= 0: continue
       print("  ID: ", i, " - ", device_info.get("name"))
-
+  # Adding of frames to queue
   def _enqueue_raw_audio(self, in_data, *_):  # unused args to match expected
     try:
       self._raw_audio_queue.put((in_data, time.time()), block=False)
@@ -165,7 +178,7 @@ class AudioRecorder(object):
 
   def sample_duration_seconds(self, num_samples):
     return num_samples / self.audio_sample_rate_hz / self.num_channels
-
+  # Removing frames from queue
   def clear_queue(self):
     logger.debug("Purging %d chunks from queue.", self._raw_audio_queue.qsize())
     while not self._raw_audio_queue.empty():
@@ -218,3 +231,19 @@ class AudioRecorder(object):
     logging.debug("Audio array has shape %s and dtype %s.", audio.shape,
                   audio.dtype)
     return audio * 0.5, timestamps[0], timestamps[-1]
+
+  def __save_audio_file (self):
+    filename = "coral_recorded.wav"
+    wf = wave.open(filename, "wb") # open the file in 'write bytes' mode
+    wf.setnchannels(num_channels)
+    wf.setsampwidth(bytes_per_sample())
+    wf.setframerate(self._raw_audio_sample_rate_hz)
+    wf.writeframes(b"".join(self.frames))
+    wf.close()
+if __name__ == "__main__":
+  capture_audio = AudioRecorder()
+  capture_audio.__enter__()
+  capture_audio.__capture_audio()
+  capture_audio.__save_audio_file()
+  capture_audio.__exit__()
+  capture_audio.__del__()
