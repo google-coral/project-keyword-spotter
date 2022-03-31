@@ -113,20 +113,20 @@ class AudioRecorder(object):
         output=False,
         frames_per_buffer=self.frames_per_chunk,
         start=True,
-        stream_callback=self._enqueue_raw_audio,
+        #stream_callback=self._enqueue_raw_audio,
         **kwargs)
     print("getting started ")
     logger.info("Started audio stream.")
-    return self
-  def __capture_audio(self):
-    frames = []
+    #return self
+  def record_audio(self):
+    # frames = []
     print("Recording...")
     for i in range(int(self._raw_audio_sample_rate_hz / 1024 * 10)):
         data = self._stream.read(1024)
         # if you want to hear your voice while recording
         # stream.write(data)
-       self.frames.append(data)
-  def __exit__(self, exception_type, exception_value, traceback):
+        self._frames.append(data)
+  def __exit__(self):
     self._stream.stop_stream()
     self._stream.close()
     logger.info("Stopped and closed audio stream.")
@@ -232,18 +232,18 @@ class AudioRecorder(object):
                   audio.dtype)
     return audio * 0.5, timestamps[0], timestamps[-1]
 
-  def __save_audio_file (self):
+  def save_audio_file(self):
     filename = "coral_recorded.wav"
     wf = wave.open(filename, "wb") # open the file in 'write bytes' mode
-    wf.setnchannels(num_channels)
-    wf.setsampwidth(bytes_per_sample())
+    wf.setnchannels(1)  #num_channels
+    wf.setsampwidth(self._audio.get_sample_size(pyaudio.paInt16))
     wf.setframerate(self._raw_audio_sample_rate_hz)
-    wf.writeframes(b"".join(self.frames))
+    wf.writeframes(b"".join(self._frames))
     wf.close()
 if __name__ == "__main__":
   capture_audio = AudioRecorder()
   capture_audio.__enter__()
-  capture_audio.__capture_audio()
-  capture_audio.__save_audio_file()
+  capture_audio.record_audio()
+  capture_audio.save_audio_file()
   capture_audio.__exit__()
   capture_audio.__del__()
